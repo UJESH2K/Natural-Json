@@ -1,0 +1,33 @@
+{
+  "name": "trading-workflow-builder",
+  "version": "1.0.0",
+  "description": "A web application for building and managing trading workflows using natural language processing and React Flow.",
+  "main": "src/app/page.tsx",
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "lint": "eslint ."
+  },
+  "dependencies": {
+    "@google/generative-ai": "^0.24.1",
+    "@tailwindcss/postcss": "^4.1.17",
+    "axios": "latest",
+    "next": "latest",
+    "react": "latest",
+    "react-dom": "latest",
+    "react-flow-renderer": "latest",
+    "reactflow": "^11.11.4",
+    "zod": "^4.1.13"
+  },
+  "devDependencies": {
+    "@types/react": "19.2.7",
+    "autoprefixer": "latest",
+    "eslint": "latest",
+    "eslint-config-next": "latest",
+    "postcss": "latest",
+    "tailwindcss": "latest",
+    "typescript": "latest"
+  },
+  "license": "MIT"
+}
