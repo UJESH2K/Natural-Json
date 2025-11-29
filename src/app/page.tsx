@@ -166,99 +166,47 @@ export default function Home() {
       
       {/* Main Content - shifts right when sidebar is open */}
       <div 
-        className={`relative z-10 flex flex-col items-center justify-center min-h-screen p-4 transition-all duration-300 ${sidebarOpen ? 'ml-64' : 'ml-0'}`}
+        className={`relative z-10 flex flex-col min-h-screen transition-all duration-300 ${sidebarOpen ? 'ml-64' : 'ml-0'}`}
       >
-        <div className="w-full max-w-2xl flex flex-col items-center space-y-8">
-        
-        {/* Cardano X Dan Labs Logo */}
-        <div className="flex items-center gap-4 mb-4">
-          <span className="text-6xl font-bold tracking-wide ">CARDANO</span>
-          <span className="text-xl font-light bg-gradient-to-r from-purple-400 to-pink-400 bg-clip-text text-transparent">×</span>
-          <span className="text-6xl font-bold tracking-wide">DAN LABS</span>
-        </div>
-        
-        {/* Header */}
-        {/* <h1 className="text-3xl font-bold text-gray-100 mb-8">What's on your mind today?</h1> */}
-        <br/>
-
-        {/* Input Area with Animated Border */}
-        <div className="w-full relative">
-          {/* Animated gradient border container */}
-          <div className="absolute -inset-[3px] rounded-xl overflow-hidden">
-            <div 
-              className="absolute inset-[-50%] w-[200%] h-[200%] animate-border-rotate"
-              style={{
-                background: 'conic-gradient(from 0deg, #3b82f6, #8b5cf6, #ec4899, #3b82f6)',
-              }}
-            />
+        {/* React Flow Area - Takes up top 85% when submitted */}
+        {isSubmitted && (
+          <div 
+            className="flex-1 transition-all duration-700 ease-in-out opacity-100"
+          >
+            {/* React Flow will go here */}
+            <div className="w-full h-full flex items-center justify-center">
+              <div className="text-gray-500 text-lg">
+                {/* Placeholder for React Flow */}
+              </div>
+            </div>
           </div>
-          
-          <PromptInput onSubmit={handleSubmit} className="relative">
-            <PromptInputTextarea
-              value={prompt}
-              onChange={(e) => {
-                setPrompt(e.target.value);
-                if (isSubmitted) setIsSubmitted(false);
-              }}
-              placeholder="Make your customized AI Agent"
-              className={isSubmitted ? "text-gray-500" : ""}
-            />
-            <PromptInputToolbar className="pr-3 pb-3">
-              <PromptInputTools>
-                <PromptInputButton>
-                  <PaperclipIcon size={20} />
-                </PromptInputButton>
-                <PromptInputButton>
-                  <MicIcon size={16} />
-                  <span>Voice</span>
-                </PromptInputButton>
-                <PromptInputModelSelect
-                  value={selectedModel}
-                  onValueChange={setSelectedModel}
-                >
-                  <PromptInputModelSelectTrigger>
-                    <PromptInputModelSelectValue />
-                  </PromptInputModelSelectTrigger>
-                  <PromptInputModelSelectContent>
-                    {models.map((model) => (
-                      <PromptInputModelSelectItem key={model.id} value={model.id}>
-                        {model.name}
-                      </PromptInputModelSelectItem>
-                    ))}
-                  </PromptInputModelSelectContent>
-                </PromptInputModelSelect>
-              </PromptInputTools>
-              <PromptInputSubmit disabled={!prompt.trim()} status={status} />
-            </PromptInputToolbar>
-          </PromptInput>
-        </div>
-        <br/>
+        )}
 
-
-        {/* 3 Trade Options / Examples */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 w-full">
-          {/* Long BTC */}
-          {/* <div className="relative group">
-            <div className="absolute -inset-[2px] rounded-2xl overflow-hidden">
-              <div 
-                className="absolute inset-[-50%] w-[200%] h-[200%] animate-border-rotate"
-                style={{
-                  background: 'conic-gradient(from 0deg, #3b82f6, #8b5cf6, #ec4899, #3b82f6)',
-                }}
-              />
-            </div>
-            <button
-              onClick={() => handleExampleClick("Long BTC 10x if price > 50000")}
-              className="relative w-full p-5 bg-[#1a1a1a] rounded-2xl hover:bg-[#252525] transition-colors"
-            >
-              <div className="font-semibold text-gray-200 mb-1 group-hover:text-white text-center">Long BTC</div>
-              <div className="text-xs text-gray-400 text-center">Leverage 10x above $50k</div>
-            </button>
+        {/* Center Content - Header and Input (moves to bottom after submit) */}
+        <div 
+          className={`w-full flex flex-col items-center transition-all duration-700 ease-out ${
+            isSubmitted 
+              ? 'py-4' 
+              : 'flex-1 justify-center'
+          }`}
+        >
+          {/* Cardano X Dan Labs Logo - Fades out after submit */}
+          <div 
+            className={`flex items-center gap-4 mb-8 transition-all duration-500 ease-in-out ${
+              isSubmitted 
+                ? 'opacity-0 scale-95 h-0 mb-0 pointer-events-none' 
+                : 'opacity-100 scale-100'
+            }`}
+          >
+            <span className="text-6xl font-bold tracking-wide">CARDANO</span>
+            <span className="text-xl font-light bg-gradient-to-r from-purple-400 to-pink-400 bg-clip-text text-transparent">×</span>
+            <span className="text-6xl font-bold tracking-wide">DAN LABS</span>
           </div>
-           */}
-          {/* Short ETH */}
-          {/* <div className="relative group">
-            <div className="absolute -inset-[2px] rounded-2xl overflow-hidden">
+
+          {/* Input Area with Animated Border */}
+          <div className={`w-full max-w-2xl relative px-4 transition-all duration-700 ease-in-out`}>
+            {/* Animated gradient border container */}
+            <div className="absolute -inset-[3px] left-1 right-1 rounded-xl overflow-hidden">
               <div 
                 className="absolute inset-[-50%] w-[200%] h-[200%] animate-border-rotate"
                 style={{
@@ -266,35 +214,47 @@ export default function Home() {
                 }}
               />
             </div>
-            <button
-              onClick={() => handleExampleClick("Short ETH if price < 2000, TP 1800")}
-              className="relative w-full p-5 bg-[#1a1a1a] rounded-2xl hover:bg-[#252525] transition-colors"
-            >
-              <div className="font-semibold text-gray-200 mb-1 group-hover:text-white text-center">Short ETH</div>
-              <div className="text-xs text-gray-400 text-center">Target $1800 below $2k</div>
-            </button>
-          </div> */}
-          
-          {/* Accumulate SOL */}
-          {/* <div className="relative group">
-            <div className="absolute -inset-[2px] rounded-2xl overflow-hidden">
-              <div 
-                className="absolute inset-[-50%] w-[200%] h-[200%] animate-border-rotate"
-                style={{
-                  background: 'conic-gradient(from 0deg, #3b82f6, #8b5cf6, #ec4899, #3b82f6)',
+            
+            <PromptInput onSubmit={handleSubmit} className="relative">
+              <PromptInputTextarea
+                value={prompt}
+                onChange={(e) => {
+                  setPrompt(e.target.value);
+                  if (isSubmitted) setIsSubmitted(false);
                 }}
+                placeholder="Make your customized AI Agent"
+                className={isSubmitted ? "text-gray-500" : ""}
               />
-            </div>
-            <button
-              onClick={() => handleExampleClick("Buy SOL if price drops below 140")}
-              className="relative w-full p-5 bg-[#1a1a1a] rounded-2xl hover:bg-[#252525] transition-colors"
-            >
-              <div className="font-semibold text-gray-200 mb-1 group-hover:text-white text-center">Accumulate SOL</div>
-              <div className="text-xs text-gray-400 text-center">Buy dip below $140</div>
-            </button>
-          </div> */}
+              <PromptInputToolbar className="pr-3 pb-3">
+                <PromptInputTools>
+                  <PromptInputButton>
+                    <PaperclipIcon size={20} />
+                  </PromptInputButton>
+                  <PromptInputButton>
+                    <MicIcon size={16} />
+                    <span>Voice</span>
+                  </PromptInputButton>
+                  <PromptInputModelSelect
+                    value={selectedModel}
+                    onValueChange={setSelectedModel}
+                  >
+                    <PromptInputModelSelectTrigger>
+                      <PromptInputModelSelectValue />
+                    </PromptInputModelSelectTrigger>
+                    <PromptInputModelSelectContent>
+                      {models.map((model) => (
+                        <PromptInputModelSelectItem key={model.id} value={model.id}>
+                          {model.name}
+                        </PromptInputModelSelectItem>
+                      ))}
+                    </PromptInputModelSelectContent>
+                  </PromptInputModelSelect>
+                </PromptInputTools>
+                <PromptInputSubmit disabled={!prompt.trim()} status={status} />
+              </PromptInputToolbar>
+            </PromptInput>
+          </div>
         </div>
-      </div>
       </div>
     </div>
   );
