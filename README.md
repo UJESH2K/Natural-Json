@@ -28,9 +28,9 @@ Additional view with live trading and charts:
 ## 🎬 End-to-End Demo (Video)
 
 GitHub does not reliably play inline `<video>` tags in all contexts, so the most robust approach is a clickable thumbnail that opens the MP4.
+[![Watch demo video](public/4.jpg)](public/6.mp4)
+![Demo](public/6.gif)
 
-[![Watch demo video](/4.jpg)](/6.mp4)
-![Demo](6.gif)
 
 
 > Click the image above to open and play the demo video (public/6.mp4) in your browser.
