@@ -1,7 +1,7 @@
 {
-  "name": "trading-workflow-builder",
+  "name": "jrine",
   "version": "1.0.0",
-  "description": "A web application for building and managing trading workflows using natural language processing and React Flow.",
+  "description": "Jrine - AI-powered trading workflow builder with Cardano blockchain integration and real-time notifications.",
   "main": "src/app/page.tsx",
   "scripts": {
     "dev": "next dev",
@@ -10,6 +10,8 @@
     "lint": "eslint ."
   },
   "dependencies": {
+    "@blockfrost/blockfrost-js": "^6.0.0",
+    "@emurgo/cardano-serialization-lib-nodejs": "^15.0.3",
     "@google/generative-ai": "^0.24.1",
     "@radix-ui/react-select": "^2.2.6",
     "@radix-ui/react-slot": "^1.2.4",
@@ -20,15 +22,20 @@
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
     "cors": "^2.8.5",
+    "dotenv": "^17.2.3",
     "ethers": "^6.15.0",
     "express": "^5.1.0",
     "http-proxy-middleware": "^3.0.5",
     "lucide-react": "^0.555.0",
     "next": "latest",
+    "node-fetch": "^3.3.2",
     "nodemailer": "^7.0.11",
     "react": "latest",
     "react-dom": "latest",
     "react-shaders": "^0.0.4",
+    "recharts": "^3.5.1",
+    "socket.io": "^4.8.1",
+    "socket.io-client": "^4.8.1",
     "tailwind-merge": "^3.4.0",
     "zod": "^4.1.13"
   },

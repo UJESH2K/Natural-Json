@@ -78,9 +78,9 @@ export const Sidebar: React.FC<SidebarProps> = ({
         {/* Header */}
         <div className="flex items-center justify-between p-4 border-b border-[#2a2a2a]">
           <div className="flex items-center gap-2">
-            <div className="w-8 h-8 bg-linear-to-r from-blue-500 via-purple-500 to-pink-500 rounded-lg flex items-center justify-center">
+            {/* <div className="w-8 h-8 bg-linear-to-r from-blue-500 via-purple-500 to-pink-500 rounded-lg flex items-center justify-center">
               <span className="text-white font-bold text-sm">C</span>
-            </div>
+            </div> */}
             <span className="font-semibold text-white">Cardano AI</span>
           </div>
           <button
@@ -104,20 +104,23 @@ export const Sidebar: React.FC<SidebarProps> = ({
 
         {/* Search */}
         <div className="px-3 pb-3">
-          <div className="relative">
-            <SearchIcon size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500" />
-            <input
-              type="text"
-              placeholder="Search chats..."
-              value={searchQuery}
-              onChange={(e) => {
-                setSearchQuery(e.target.value);
-                onSearch?.(e.target.value);
-              }}
-              className="w-full pl-9 pr-3 py-2 bg-[#1a1a1a] border border-[#3a3a3a] rounded-lg text-sm text-gray-300 placeholder:text-gray-500 focus:outline-none focus:border-[#4a4a4a]"
-            />
-          </div>
-        </div>
+  <div className="relative">
+    <input
+      type="text"
+      placeholder="Search chats..."
+               value={searchQuery}
+      onChange={(e) => {
+          setSearchQuery(e.target.value);
+          onSearch?.(e.target.value);
+        }}
+      className="w-full pl-11 pr-3 py-2 bg-[#1a1a1a] border border-[#3a3a3a] rounded-lg text-sm text-gray-300 placeholder:text-gray-500 focus:outline-none focus:border-[#4a4a4a]"
+    />
+        {/* <SearchIcon
+          size={16}
+          className="absolute right-20px top-1/2 -translate-y-1/2 text-gray-500"
+        /> */}
+  </div>
+</div>
 
         {/* Chat History */}
         <div className="flex-1 overflow-y-auto px-3 pb-3">

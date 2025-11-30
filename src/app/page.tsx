@@ -4,6 +4,8 @@ import React, { useState, useEffect } from "react";
 import { AuroraShaders } from "@/components/ui/aurora-shaders";
 import { Sidebar, type ChatHistory } from "@/components/ui/sidebar";
 import { WorkflowCanvas } from "@/components/workflow/workflow-canvas";
+import { TradingDashboard } from "@/components/trading/TradingDashboard";
+import { WorkflowExecutor } from "@/components/trading/WorkflowExecutor";
 import { Workflow } from "@/types/workflow";
 import {
   PromptInput,
@@ -43,6 +45,11 @@ export default function Home() {
   const [currentChatId, setCurrentChatId] = useState<string | null>(null);
   const [isSubmitted, setIsSubmitted] = useState(false);
   const [statuses, setStatuses] = useState<Record<string, string>>({});
+  
+  // Trading dashboard state
+  const [showTradingDashboard, setShowTradingDashboard] = useState(false);
+  const [isExecutingTrades, setIsExecutingTrades] = useState(false);
+  const [selectedProvider, setSelectedProvider] = useState<'cardano' | 'backpack' | 'lighter' | 'masumi'>('cardano');
 
   // Removed auto-execution since Lighter API doesn't work
 
@@ -184,6 +191,24 @@ export default function Home() {
     setPrompt(text);
   };
 
+  const handleExecutionStart = () => {
+    setIsExecutingTrades(true);
+    setShowTradingDashboard(true);
+  };
+
+  const handleExecutionStop = () => {
+    setIsExecutingTrades(false);
+  };
+
+  const handleTradeEvent = (event: any) => {
+    console.log('📊 Trading event:', event);
+    // Events are handled by the TradingDashboard component
+  };
+
+  const toggleTradingDashboard = () => {
+    setShowTradingDashboard(!showTradingDashboard);
+  };
+
   return (
     <div className="relative min-h-screen bg-[#0a0a0a] text-white overflow-hidden">
       {/* Sidebar */}
@@ -214,7 +239,65 @@ export default function Home() {
         {/* React Flow Area - Takes up available space when submitted */}
         {isSubmitted && (
           <div className="flex-1 w-full transition-all duration-700 ease-in-out" style={{ minHeight: 'calc(100vh - 120px)' }}>
-            <WorkflowCanvas workflow={workflow} isLoading={isLoadingWorkflow} statuses={statuses} />
+            <div className="h-full flex flex-col">
+              {/* Top Controls */}
+              <div className="flex items-center justify-between p-4 bg-gray-900/50 border-b border-gray-800">
+                <h2 className="text-xl font-bold text-white">
+                  DAN Trading Dashboard
+                </h2>
+                <div className="flex items-center gap-4">
+                  <select 
+                    value={selectedProvider} 
+                    onChange={(e) => setSelectedProvider(e.target.value as any)}
+                    className="bg-gray-800 text-white px-3 py-2 rounded border border-gray-600"
+                  >
+                    <option value="cardano">🔗 Cardano (Recommended)</option>
+                    <option value="backpack">🎒 Backpack</option>
+                    <option value="lighter">⚡ Lighter</option>
+                    <option value="masumi">🏛️ Masumi</option>
+                  </select>
+                  <button
+                    onClick={toggleTradingDashboard}
+                    className={`px-4 py-2 rounded font-medium transition-colors ${
+                      showTradingDashboard 
+                        ? 'bg-blue-600 text-white' 
+                        : 'bg-gray-700 text-gray-300 hover:bg-gray-600'
+                    }`}
+                  >
+                    📊 {showTradingDashboard ? 'Hide Charts' : 'Show Live Trades'}
+                  </button>
+                </div>
+              </div>
+              
+              <div className="flex-1 flex">
+                {/* Workflow Canvas */}
+                <div className={`${showTradingDashboard ? 'w-1/2' : 'w-full'} transition-all duration-300`}>
+                  <WorkflowCanvas workflow={workflow} isLoading={isLoadingWorkflow} statuses={statuses} />
+                </div>
+                
+                {/* Trading Dashboard */}
+                {showTradingDashboard && (
+                  <div className="w-1/2 border-l border-gray-800 overflow-auto">
+                    <div className="p-4 space-y-4">
+                      {/* Workflow Executor */}
+                      <WorkflowExecutor
+                        workflow={workflow}
+                        provider={selectedProvider}
+                        onExecutionStart={handleExecutionStart}
+                        onExecutionStop={handleExecutionStop}
+                        onTradeEvent={handleTradeEvent}
+                      />
+                      
+                      {/* Trading Dashboard */}
+                      <TradingDashboard 
+                        workflowId={workflow?.id}
+                        isExecuting={isExecutingTrades}
+                      />
+                    </div>
+                  </div>
+                )}
+              </div>
+            </div>
           </div>
         )}
 
@@ -234,18 +317,18 @@ export default function Home() {
                 : 'opacity-100 scale-100'
             }`}
           >
-            <span className="text-6xl font-bold tracking-wide">CARDANO</span>
+            <span className="text-6xl font-bold tracking-wide bg-linear-to-r from-blue-400 via-purple-500 to-pink-500 bg-clip-text text-transparent">CARDANO</span>
             <span className="text-xl font-light bg-linear-to-r from-purple-400 to-pink-400 bg-clip-text text-transparent">×</span>
-            <span className="text-6xl font-bold tracking-wide">DAN LABS</span>
+            <span className="text-6xl font-bold tracking-wide bg-linear-to-r from-pink-500 via-purple-500 to-blue-400 bg-clip-text text-transparent">DAN LABS</span>
           </div>
           <br />
 
           {/* Input Area with Animated Border */}
           <div className={`w-full max-w-2xl relative px-4 transition-all duration-700 ease-in-out`}>
             {/* Animated gradient border container */}
-            <div className="absolute -inset-[3px] left-1 right-1 rounded-xl overflow-hidden">
+            <div className="absolute -inset-[1px] left-1 right-1 rounded-xl overflow-hidden">
               <div 
-                className="absolute inset-[-50%] w-[200%] h-[200%] animate-border-rotate"
+                className="absolute inset-[-50%] w-[200%] h-[200%] animate-border-rotate opacity-60"
                 style={{
                   background: 'conic-gradient(from 0deg, #3b82f6, #8b5cf6, #ec4899, #3b82f6)',
                 }}
@@ -259,7 +342,7 @@ export default function Home() {
                   setPrompt(e.target.value);
                   if (isSubmitted) setIsSubmitted(false);
                 }}
-                placeholder="Make your customized AI Agent"
+                placeholder="Try: 'buy 10 ADA every 5 seconds and email me' - Watch live trades!"
                 className={isSubmitted ? "text-gray-500" : ""}
               />
               <PromptInputToolbar className="pr-3 pb-3">
@@ -290,6 +373,45 @@ export default function Home() {
                 <PromptInputSubmit disabled={!prompt.trim()} status={status} />
               </PromptInputToolbar>
             </PromptInput>
+            
+            {/* Example Prompts for Trading */}
+            {!isSubmitted && (
+              <div className="mt-6 w-full max-w-2xl">
+                {/* <div className="text-center text-gray-400 text-sm mb-4">
+                  🚀 Try these live trading examples:
+                </div> */}
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                  {/* <button
+                    onClick={() => handleExampleClick("buy 10 ADA every 5 seconds and email me")}
+                    className="p-3 bg-gray-800/50 hover:bg-gray-700/50 rounded-lg border border-gray-700 text-left text-sm transition-colors"
+                  >
+                    <div className="text-blue-400 font-medium">📈 Recurring Buy</div>
+                    <div className="text-gray-300">buy 10 ADA every 5 seconds and email me</div>
+                  </button>
+                  <button
+                    onClick={() => handleExampleClick("buy 25 ADA every 10 seconds with notifications")}
+                    className="p-3 bg-gray-800/50 hover:bg-gray-700/50 rounded-lg border border-gray-700 text-left text-sm transition-colors"
+                  >
+                    <div className="text-green-400 font-medium">🔄 Auto Trading</div>
+                    <div className="text-gray-300">buy 25 ADA every 10 seconds with notifications</div>
+                  </button>
+                  <button
+                    onClick={() => handleExampleClick("when ADA hits $0.50 buy 100 ADA")}
+                    className="p-3 bg-gray-800/50 hover:bg-gray-700/50 rounded-lg border border-gray-700 text-left text-sm transition-colors"
+                  >
+                    <div className="text-purple-400 font-medium">🎯 Price Alert</div>
+                    <div className="text-gray-300">when ADA hits $0.50 buy 100 ADA</div>
+                  </button>
+                  <button
+                    onClick={() => handleExampleClick("buy 50 ADA and notify ujeshyadav007@gmail.com")}
+                    className="p-3 bg-gray-800/50 hover:bg-gray-700/50 rounded-lg border border-gray-700 text-left text-sm transition-colors"
+                  >
+                    <div className="text-yellow-400 font-medium">📧 Email Alert</div>
+                    <div className="text-gray-300">buy 50 ADA and notify ujeshyadav007@gmail.com</div>
+                  </button> */}
+                </div>
+              </div>
+            )}
           </div>
         </div>
       </div>

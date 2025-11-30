@@ -104,6 +104,74 @@ export const lighterAdapter: ProviderAdapter = {
   },
 };
 
+// Helper to build correct URLs for server-side execution
+function getAPIUrl(endpoint: string): string {
+  if (typeof window !== 'undefined') {
+    // Client-side: use relative URLs
+    return endpoint;
+  } else {
+    // Server-side: use localhost URL
+    return `http://localhost:3000${endpoint}`;
+  }
+}
+
+export const cardanoAdapter: ProviderAdapter = {
+  name: "cardano",
+  async placeOrder(args) {
+    try {
+      console.log(`🔗 Executing Cardano trade: ${args.side} ${args.amount} ${args.asset}`);
+      
+      // Use correct URL for server-side execution
+      const apiUrl = getAPIUrl('/api/cardano');
+      const response = await fetch(apiUrl, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          action: 'simulate_trade',
+          side: args.side,
+          asset: args.asset,
+          amount: args.amount,
+          price: args.price
+        })
+      });
+      
+      const result = await response.json();
+      
+      if (result.success && result.data.transaction.status === 'submitted') {
+        return {
+          ok: true,
+          message: `Cardano ${args.side} order simulated successfully`,
+          txId: result.data.transaction.txHash,
+          details: {
+            network: 'Cardano Preprod Testnet',
+            amount: result.data.transaction.amount,
+            fee: result.data.transaction.fee,
+            blockHeight: result.data.transaction.blockHeight,
+            timestamp: result.data.transaction.timestamp
+          }
+        };
+      } else {
+        return {
+          ok: false,
+          message: `Cardano trade simulation failed`,
+          details: result.error || 'Unknown error'
+        };
+      }
+      
+    } catch (error: any) {
+      console.error('❌ Cardano trade error:', error);
+      return {
+        ok: false,
+        message: `Cardano error: ${error.message}`,
+        details: { error: error.message }
+      };
+    }
+  },
+  async notify(args) {
+    return await sendRealEmail(args);
+  },
+};
+
 export const masumiAdapter: ProviderAdapter = {
   name: "masumi",
   async placeOrder(args) {
@@ -120,7 +188,8 @@ async function sendRealEmail(args: { channel: string; to: string; message: strin
   try {
     console.log(`📧 Sending real email notification to: ${args.to}`);
     
-    const response = await fetch('/api/email', {
+    const apiUrl = getAPIUrl('/api/email');
+    const response = await fetch(apiUrl, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
@@ -131,6 +200,14 @@ async function sendRealEmail(args: { channel: string; to: string; message: strin
       })
     });
     
+    // Check if response is actually JSON
+    const contentType = response.headers.get('content-type');
+    if (!contentType || !contentType.includes('application/json')) {
+      const textResponse = await response.text();
+      console.error('❌ Email API returned non-JSON response:', textResponse.substring(0, 200));
+      return { ok: false, message: 'Email service returned HTML instead of JSON. Check server configuration.' };
+    }
+    
     const result = await response.json();
     
     if (response.ok) {
@@ -138,7 +215,7 @@ async function sendRealEmail(args: { channel: string; to: string; message: strin
       return { ok: true, message: `Real email sent to ${args.to}`, details: result };
     } else {
       console.error(`❌ Email send failed:`, result);
-      return { ok: false, message: `Email failed: ${result.error}` };
+      return { ok: false, message: `Email failed: ${result.error || 'Unknown error'}` };
     }
   } catch (error: any) {
     console.error(`❌ Email service error:`, error);
@@ -152,12 +229,12 @@ export function pickAdapter(provider: Provider): ProviderAdapter {
       return backpackAdapter;
     case "lighter":
       return lighterAdapter;
+    case "cardano":
+      return cardanoAdapter;
     case "masumi":
       return masumiAdapter;
-    case "cardano":
-      return masumiAdapter; // placeholder for on-chain; reuse Masumi for now
     default:
-      return backpackAdapter;
+      return cardanoAdapter; // Default to Cardano since it actually works
   }
 }
 
