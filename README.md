@@ -1,16 +1,33 @@
 CARDANO × DAN LABS  
 
-<img src="/5.png" width="120" />
+<img src="public/5.png" width="120" />
 
-AI-powered trading agent that turns plain English like “buy 10 ADA every 5 seconds and send me a mail” into executable workflows, runs them on Cardano, and streams live trades and notifications in real time.[1]
+AI-powered trading agent that turns plain English like “buy 10 ADA every 5 seconds and send me a mail” into executable workflows, runs them on Cardano, and streams live trades and notifications in real time.[file:1]
 
-The app opens with a full-screen “CARDANO × DAN LABS” hero, a glowing aurora background, and a single central prompt bar where the user can type or speak strategies such as “Buy 10 ADA every 5 seconds and send me a mail.”[1]
+---
+
+The app opens with a full-screen “CARDANO × DAN LABS” hero, a glowing aurora background, and a single central prompt bar where the user can type or speak strategies such as “Buy 10 ADA every 5 seconds and send me a mail.”[file:1]
+
+### 🌌 Screenshots
 
 Screenshot 1 – Initial hero screen with prompt:  
-![1](/1.jpg)
+![3](public/3.jpg)
 
-Screenshot 2 – Focused hero with collapsed sidebar:  
-![2](/2.jpg)
+Screenshot 2 – Focused hero / trading dashboard state:  
+![4](public/4.jpg)
+
+Additional UI state with live trading view and dashboard:  
+![7](public/7.jpg)
+
+### 🎬 End-to-end Demo
+
+<p align="center">
+  <video width="700" controls>
+    <source src="public/6.mp4" type="video/mp4" />
+    Your browser does not support the video tag.
+  </video>
+</p>
+
 
 On the left, users see a chat-style history of all previously created agents and prompts, making it feel like a trading copilot rather than a static form.[1]
 
