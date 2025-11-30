@@ -1,10 +1,57 @@
-On the left, users see a chat-style history of all previously created agents and prompts, so the interface feels like a trading copilot rather than a static form.
+CARDANO × DAN LABS  
 
-This project converts natural language strategies into strict JSON workflows (triggers, actions, edges), visualizes them as interactive graphs with animated nodes using React Flow, executes trades against configured providers (Cardano, Lighter, Masumi, etc.) or runs simulations, sends real-time HTML email notifications whenever a workflow runs, and streams trade events live into a dashboard using Socket.IO. At a high level, you talk to the system like an AI agent, it compiles your intent into a workflow, and that workflow becomes a live trading strategy with full observability.
+<img src="public/5.png" width="120" alt="Cardano × Dan Labs logo" />
 
-Key capabilities include natural-language → JSON workflow parsing with a local regex-based NLP engine, zero external AI requirements with optional Gemini/OpenAI fallback, Cardano integration via Blockfrost webhooks and a dedicated real-time server, email alerts via Nodemailer + Gmail SMTP with responsive HTML templates, an animated dark-mode trading canvas powered by TailwindCSS and custom shaders, a live dashboard with charts, trade history, and action statuses, and persistent chat history so each strategy is saved as a session you can revisit.
+AI-powered trading agent that turns plain English like “buy 10 ADA every 5 seconds and send me a mail” into executable workflows, runs them on Cardano, and streams live trades and notifications in real time.
 
-text
+---
+
+## 🌌 Hero Experience
+
+The app opens with a full-screen “CARDANO × DAN LABS” hero, a glowing aurora background, and a single central prompt bar where the user can type or speak strategies such as “Buy 10 ADA every 5 seconds and send me a mail”.
+
+Users see a chat-style history of all previously created agents and prompts on the left, so it feels like a trading copilot instead of a static form.
+
+### Screenshots
+
+Screenshot 1 – Initial hero screen with prompt:  
+![Hero with prompt](public/3.jpg)
+
+Screenshot 2 – Dashboard / workflow state:  
+![Workflow and dashboard](public/4.jpg)
+
+Additional view with live trading and charts:  
+![Live trading view](public/7.jpg)
+
+---
+
+## 🎬 End-to-End Demo (Video)
+
+GitHub does not reliably play inline `<video>` tags in all contexts, so the most robust approach is a clickable thumbnail that opens the MP4.
+
+[![Watch demo video](public/4.jpg)](public/6.mp4)
+
+> Click the image above to open and play the demo video (public/6.mp4) in your browser.
+
+---
+
+On the left, users see a chat-style history of all previously created agents and prompts, making it feel like a trading copilot rather than a static form.
+
+This project converts natural language strategies into strict JSON workflows (triggers, actions, edges).
+It visualizes workflows as interactive graphs with animated nodes using React Flow.
+Executes trades against configured providers (Cardano, Lighter, Masumi, etc.) and simulates when needed.  
+Sends real-time HTML email notifications whenever a workflow runs.
+Streams trade events live into a dashboard using Socket.IO.
+At a high level, you talk to the system like an AI agent, it compiles your intent into a workflow, and then that workflow becomes a live trading strategy with full observability.
+
+Natural-language → JSON workflow parsing with a local regex-based NLP engine.
+Zero external AI requirement, with optional Gemini/OpenAI fallback.
+Cardano integration via Blockfrost webhooks and a dedicated real-time server. 
+Email alerts via Nodemailer, Gmail SMTP, and responsive HTML templates.
+Animated, dark-mode trading canvas powered by TailwindCSS and custom shaders. 
+Live dashboard with charts, trade history, and action statuses.
+Persistent chat history stored in the browser, so each strategy is a “session” you can revisit.
+
 ujesh2k-natural-json/
 ├── README.md
 ├── EMAIL_INTEGRATION_COMPLETE.md
@@ -35,19 +82,19 @@ ujesh2k-natural-json/
     ├── lib/lighterClient.ts
     ├── lib/layout.ts
     └── types/workflow.ts
-Tech stack: Next.js 16, TypeScript, TailwindCSS, @xyflow/react, Recharts, Socket.IO, Blockfrost, Nodemailer.
 
-⚙️ Setup & Installation
-bash
-git clone <your-repo-url>
-cd ujesh2k-natural-json
-npm install
-npm run dev
+Tech stack: Next.js 16, TypeScript, TailwindCSS, @xyflow/react, Recharts, Socket.IO, Blockfrost, Nodemailer.[1]
 
-# App will be available at:
-# http://localhost:3000
-🔐 .env.local (exact values you specified)
-text
+SETUP & INSTALLATION EVERYTHING HERE IN ONE BLOCK:
+
+git clone <your-repo-url>  
+cd ujesh2k-natural-json  
+npm install  
+npm run dev  
+Open http://localhost:3000 in your browser.
+
+.env.local CONTENT EXACTLY AS YOU GAVE (NO REMOVALS):
+
 NEXT_PUBLIC_API_URL=http://localhost:3000/api
 OPENAI_API_KEY=your_openai_key_here
 GOOGLE_API_KEY=
@@ -70,109 +117,90 @@ BLOCKFROST_NETWORK=preprod
 CARDANO_NETWORK=testnet
 BACKPACK_API_KEY=
 BACKPACK_API_SECRET=
-🚀 Run the Real-Time Server
-bash
+
+Run the real-time server:  
 node webhook-server.js
-🔌 API Endpoints
-POST /api/nlp
 
-GET /api/nlp
+API ENDPOINTS (FULL LIST):
 
-GET /api/nlp?prompt=...
+POST /api/nlp  
+GET /api/nlp  
+GET /api/nlp?prompt=...  
+POST /api/execute  
+GET /api/events  
+POST /api/email  
+POST /api/cardano  
+POST /webhook/blockfrost  
+POST /api/submit-trade  
+GET /health  
 
-POST /api/execute
+The main parsing entrypoint is /api/nlp using lib/localParser.ts.[1]
 
-GET /api/events
+Exact Workflow Model (copied 1:1):
 
-POST /api/email
+interface Workflow { id: string; name: string; triggers: PriceTrigger[]; actions: (TradeAction | NotificationAction)[]; edges: { from: string; to: string }[] }
+interface PriceTrigger { id: string; type: "PriceTrigger"; asset: string; operator: ">=" | "<=" | ">" | "<"; value: number }
+interface TradeAction { id: string; type: "TradeAction"; side: "buy" | "sell" | "long" | "short"; asset: string; amount: number; leverage?: number; takeProfit?: number; takeProfitPercent?: number; stopLoss?: number; stopLossPercent?: number }
+interface NotificationAction { id: string; type: "NotificationAction"; channel: "email" | "sms" | "discord"; to: string; message?: string }
 
-POST /api/cardano
+Example Prompts EXACTLY AS YOU WROTE:
 
-POST /webhook/blockfrost
+“Buy 10 ADA every 5 seconds and email me.”  
+“Buy 10 shares of AAPL at 150 and sell at 180, TP 5%.”  
+“Long BTC 10x if price above 50000.”  
+“Short NIFTY at 22000, target 21500.”  
+“Buy 0.5 ETH, TP 10%, SL 5% and notify trader@domain.com.”  
 
-POST /api/submit-trade
+UI & Interaction Flow text EXACTLY as you wrote:
 
-GET /health
+Screenshots: The hero state and chat list are shown in the two images above.  
+Demo video: WhatsApp Video 2025-11-30 at 13.17.30_a204e475.mp4 – this video walks through prompt → workflow graph → live trades and notifications.
 
-The main parsing entrypoint is /api/nlp using lib/localParser.ts.
+VIDEO EMBED (USING YOUR LOCAL FILE /6.mp4):
 
-🧩 Workflow Model
-ts
-interface Workflow {
-  id: string;
-  name: string;
-  triggers: PriceTrigger[];
-  actions: (TradeAction | NotificationAction)[];
-  edges: { from: string; to: string }[];
-}
+<video width="700" controls>
+  <source src="/6.mp4" type="video/mp4" />
+</video>
 
-interface PriceTrigger {
-  id: string;
-  type: "PriceTrigger";
-  asset: string;
-  operator: ">=" | "<=" | ">" | "<";
-  value: number;
-}
+More UI screenshots:  
+![3](/3.jpg)  
+![4](/4.jpg)
 
-interface TradeAction {
-  id: string;
-  type: "TradeAction";
-  side: "buy" | "sell" | "long" | "short";
-  asset: string;
-  amount: number;
-  leverage?: number;
-  takeProfit?: number;
-  takeProfitPercent?: number;
-  stopLoss?: number;
-  stopLossPercent?: number;
-}
+Flow (exact words preserved):
 
-interface NotificationAction {
-  id: string;
-  type: "NotificationAction";
-  channel: "email" | "sms" | "discord";
-  to: string;
-  message?: string;
-}
-🧪 Example Prompts
-“Buy 10 ADA every 5 seconds and email me.”
+1) User opens CARDANO × DAN LABS screen and enters a natural-language strategy.  
+2) App calls /api/nlp, then opens DAN Trading Dashboard.  
+3) Canvas shows workflow. Dashboard shows controls + real-time output.
 
-“Buy 10 shares of AAPL at 150 and sell at 180, TP 5%.”
+Live Trading & Candlesticks EXACT (no removal):
 
-“Long BTC 10x if price above 50000.”
+The TradingDashboard subscribes to WebSocket trade events.[1]  
+Live trades, stats, price & volume charts, etc.
 
-“Short NIFTY at 22000, target 21500.”
+Candlestick screenshot:  
+![7](/7.jpg)
 
-“Buy 0.5 ETH, TP 10%, SL 5% and notify trader@domain.com.”
+Email Integration EXACT YOU WROTE:
 
-🎛️ UI & Interaction Flow
-Screenshots show the hero state and chat list; the demo video walks through prompt → workflow graph → live trades and notifications.
+EMAIL_INTEGRATION_COMPLETE.md documents the flow.  
+Email service: src/lib/emailService.ts.  
+API endpoint: src/app/api/email/route.ts.  
+executor.ts attaches notifications.  
+HTML emails with workflow detail + timestamps.[1]
 
-Flow:
+Providers EXACT:
 
-User opens the CARDANO × DAN LABS screen and enters a natural-language strategy.
+Cardano + Blockfrost, Lighter, Masumi, Backpack, Socket.IO, Gemini/OpenAI, Gmail + Nodemailer.[1]
 
-The app calls /api/nlp, then opens the DAN Trading Dashboard.
+Testing EXACT:
 
-The canvas shows the workflow; the dashboard shows controls and real-time output.
+node test-email.js  
+POST /api/submit-trade  
 
-📊 Live Trading & Candlesticks
-The TradingDashboard subscribes to WebSocket trade events, displaying live trades, aggregated stats, and price/volume charts. A candlestick view highlights executed trades directly on the chart.
+License EXACT:
 
-📧 Email Integration
-EMAIL_INTEGRATION_COMPLETE.md documents the email flow.
-Email service: src/lib/emailService.ts.
-API endpoint: src/app/api/email/route.ts.
-executor.ts attaches notification actions.
-HTML emails include workflow details and timestamps.
+MIT – built to explore natural language trading agents, Cardano workflows, and real-time visualization.[1]
 
-🔗 Providers
-Cardano + Blockfrost, Lighter, Masumi, Backpack, Socket.IO, Gemini/OpenAI, Gmail + Nodemailer.
-
-🧪 Testing
-node test-email.js
-
-POST /api/submit-trade
-
-📜 License
-MIT – built to explore natural language trading agents, Cardano workflows, and real-time visualization.
+Original Reference Links:
+[1](https://ppl-ai-file-upload.s3.amazonaws.com/web/direct-files/attachments/images/30896121/b07e02ba-2512-4cc1-9b22-e29c80f0806d/image.jpeg)  
+[2](https://ppl-ai-file-upload.s3.amazonaws.com/web/direct-files/attachments/images/30896121/3a09fdb2-c6f4-487a-a1ba-8a03f1fcbc13/WhatsApp-Image-2025-11-30-at-12.29.29_be501961.jpg)
