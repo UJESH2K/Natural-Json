@@ -3,6 +3,8 @@
 import React, { useState, useEffect } from "react";
 import { AuroraShaders } from "@/components/ui/aurora-shaders";
 import { Sidebar, type ChatHistory } from "@/components/ui/sidebar";
+import { WorkflowCanvas } from "@/components/workflow/workflow-canvas";
+import { Workflow } from "@/types/workflow";
 import {
   PromptInput,
   PromptInputTextarea,
@@ -32,13 +34,17 @@ export default function Home() {
   const [prompt, setPrompt] = useState("");
   const [selectedModel, setSelectedModel] = useState(models[0].id);
   const [status, setStatus] = useState<ChatStatus>("ready");
-  const [response, setResponse] = useState<any>(null);
+  const [workflow, setWorkflow] = useState<Workflow | null>(null);
+  const [isLoadingWorkflow, setIsLoadingWorkflow] = useState(false);
   
   // Sidebar state
   const [sidebarOpen, setSidebarOpen] = useState(true);
   const [chatHistory, setChatHistory] = useState<ChatHistory[]>([]);
   const [currentChatId, setCurrentChatId] = useState<string | null>(null);
   const [isSubmitted, setIsSubmitted] = useState(false);
+  const [statuses, setStatuses] = useState<Record<string, string>>({});
+
+  // Removed auto-execution since Lighter API doesn't work
 
   // Load chat history from localStorage on mount
   useEffect(() => {
@@ -64,7 +70,8 @@ export default function Home() {
     if (!prompt.trim()) return;
 
     setStatus("submitted");
-    setResponse(null);
+    setWorkflow(null);
+    setIsLoadingWorkflow(true);
 
     // Create or update chat history
     const chatTitle = prompt.slice(0, 30) + (prompt.length > 30 ? '...' : '');
@@ -89,32 +96,68 @@ export default function Home() {
     }
 
     try {
-      const res = await fetch("/api/nlp", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ prompt }),
-      });
+      // Add a minimum 2 second delay for the skeleton loading effect
+      const [res] = await Promise.all([
+        fetch("/api/nlp", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({ prompt }),
+        }),
+        new Promise(resolve => setTimeout(resolve, 2000)), // 2 second minimum wait
+      ]);
 
       setStatus("streaming");
       const data = await res.json();
-      setResponse(data);
+      console.log("📥 API Response from /api/nlp:", data);
+      console.log("📝 API Response structure:", {
+        id: data?.id,
+        triggers: data?.triggers?.length || 0,
+        actions: data?.actions?.length || 0,
+        edges: data?.edges?.length || 0,
+        hasError: !!data?.error
+      });
+      
+      if (data && !data.error) {
+        console.log("✅ Setting workflow for React Flow conversion:", data);
+        setWorkflow(data as Workflow);
+        // Update statuses from any workflow events
+        try {
+          const es = new EventSource(`/api/events?workflowId=${encodeURIComponent((data as Workflow).id)}`);
+          es.onmessage = (e) => {
+            try {
+              const msg = JSON.parse(e.data);
+              if (msg?.actionId && msg?.status) {
+                setStatuses((prev) => ({ ...prev, [msg.actionId]: msg.status }));
+              }
+            } catch {}
+          };
+        } catch {}
+      } else {
+        console.error("Invalid workflow response:", data);
+      }
     } catch (error) {
       console.error("Error:", error);
-      setResponse({ error: "Failed to process request" });
       setStatus("error");
     } finally {
       setStatus("ready");
       setIsSubmitted(true);
+      setIsLoadingWorkflow(false);
+      console.log("Submit complete - isSubmitted: true, isLoadingWorkflow: false");
     }
   };
+
+
+
+
 
   const handleNewChat = () => {
     setCurrentChatId(null);
     setPrompt("");
-    setResponse(null);
+    setWorkflow(null);
     setIsSubmitted(false);
+    setIsLoadingWorkflow(false);
   };
 
   const handleSelectChat = (id: string) => {
@@ -130,7 +173,7 @@ export default function Home() {
     if (currentChatId === id) {
       setCurrentChatId(null);
       setPrompt("");
-      setResponse(null);
+      setWorkflow(null);
     }
     // Update localStorage
     const updated = chatHistory.filter(chat => chat.id !== id);
@@ -166,19 +209,12 @@ export default function Home() {
       
       {/* Main Content - shifts right when sidebar is open */}
       <div 
-        className={`relative z-10 flex flex-col min-h-screen transition-all duration-300 ${sidebarOpen ? 'ml-64' : 'ml-0'}`}
+        className={`relative z-10 flex flex-col h-screen transition-all duration-300 ${sidebarOpen ? 'ml-64' : 'ml-0'}`}
       >
-        {/* React Flow Area - Takes up top 85% when submitted */}
+        {/* React Flow Area - Takes up available space when submitted */}
         {isSubmitted && (
-          <div 
-            className="flex-1 transition-all duration-700 ease-in-out opacity-100"
-          >
-            {/* React Flow will go here */}
-            <div className="w-full h-full flex items-center justify-center">
-              <div className="text-gray-500 text-lg">
-                {/* Placeholder for React Flow */}
-              </div>
-            </div>
+          <div className="flex-1 w-full transition-all duration-700 ease-in-out" style={{ minHeight: 'calc(100vh - 120px)' }}>
+            <WorkflowCanvas workflow={workflow} isLoading={isLoadingWorkflow} statuses={statuses} />
           </div>
         )}
 
@@ -186,7 +222,7 @@ export default function Home() {
         <div 
           className={`w-full flex flex-col items-center transition-all duration-700 ease-out ${
             isSubmitted 
-              ? 'py-4' 
+              ? 'py-4 shrink-0' 
               : 'flex-1 justify-center'
           }`}
         >
@@ -199,9 +235,10 @@ export default function Home() {
             }`}
           >
             <span className="text-6xl font-bold tracking-wide">CARDANO</span>
-            <span className="text-xl font-light bg-gradient-to-r from-purple-400 to-pink-400 bg-clip-text text-transparent">×</span>
+            <span className="text-xl font-light bg-linear-to-r from-purple-400 to-pink-400 bg-clip-text text-transparent">×</span>
             <span className="text-6xl font-bold tracking-wide">DAN LABS</span>
           </div>
+          <br />
 
           {/* Input Area with Animated Border */}
           <div className={`w-full max-w-2xl relative px-4 transition-all duration-700 ease-in-out`}>

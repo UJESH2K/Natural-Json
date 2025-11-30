@@ -76,6 +76,15 @@ export function parseWorkflowLocally(prompt: string): Workflow {
   }
 
   const actionList: ParsedAction[] = [];
+  // Detect quote-based sizing: e.g., "buy 5 usdc worth eth" or "5 usd of eth"
+  let quoteSizing: { quoteAmount: number; quoteAsset: string; targetAsset?: string } | null = null;
+  const quoteMatch = lowerPrompt.match(/(buy|long)?\s*(\d+(?:\.\d+)?)\s*(usdc|usd)\s*(?:worth\s*of|worth|of)\s*([a-z]{2,10})/i);
+  if (quoteMatch) {
+    const qa = parseFloat(quoteMatch[2]);
+    const qAsset = quoteMatch[3].toUpperCase();
+    const tgt = (quoteMatch[4] || "").toUpperCase();
+    quoteSizing = { quoteAmount: qa, quoteAsset: qAsset, targetAsset: tgt };
+  }
 
   // Pattern: (buy|sell|long|short) [amount] [unit]? [asset]? [at price]?
   const actionRegex = /\b(buy|sell|long|short)\s+(?:(\d+(?:\.\d+)?)\s*(?:shares?|units?|coins?|tokens?|x)?\s*)?(?:[a-z]+\s+)?(?:at\s+(\d+(?:\.\d+)?))?/gi;
@@ -119,8 +128,8 @@ export function parseWorkflowLocally(prompt: string): Workflow {
 
   // Patterns for price conditions
   const pricePatterns = [
+    /(?:hits|reaches|at|@)\s*\$?(\d+(?:\.\d+)?)/gi,
     /(?:price|value|cost)?\s*(?:is|goes|reaches|hits|drops?|falls?|gets?\s*to|exceeds?)?\s*(?:above|below|over|under|>=|<=|>|<)?\s*\$?(\d+(?:\.\d+)?)/gi,
-    /(?:at|@)\s*\$?(\d+(?:\.\d+)?)/gi,
     /(?:above|below|over|under)\s*\$?(\d+(?:\.\d+)?)/gi,
     /(?:if|when)\s+.*?\$?(\d+(?:\.\d+)?)/gi,
   ];
@@ -130,6 +139,14 @@ export function parseWorkflowLocally(prompt: string): Workflow {
     while ((m = pattern.exec(lowerPrompt)) !== null) {
       const val = parseFloat(m[1]);
       if (seenPrices.has(val)) continue;
+      
+      // Skip if this looks like leverage (number followed by 'x')
+      const afterMatch = lowerPrompt.substring(m.index + m[0].length, m.index + m[0].length + 2);
+      if (/^x/i.test(afterMatch)) continue;
+      
+      // Skip very small numbers that are likely leverage or amounts, not prices
+      if (val < 10) continue;
+      
       seenPrices.add(val);
 
       // Determine operator from surrounding context
@@ -139,7 +156,8 @@ export function parseWorkflowLocally(prompt: string): Workflow {
       let operator: ParsedTrigger["operator"] = ">=";
       if (/below|under|drops?|falls?|</.test(ctx)) {
         operator = "<=";
-      } else if (/above|over|exceeds?|>/.test(ctx)) {
+      } else if (/above|over|exceeds?|hits|reaches|>/.test(ctx)) {
+        // "hits" or "reaches" means trigger when price gets to that level
         operator = ">=";
       } else if (/sell\s+.*?at/.test(ctx) || /sell\s+at/.test(ctx)) {
         // "sell at X" means trigger when price reaches X (>=)
@@ -187,28 +205,67 @@ export function parseWorkflowLocally(prompt: string): Workflow {
   }
 
   // ─────────────────────────────────────────────────────────────
-  // 5. BUILD TRIGGERS ARRAY
+  // 5. BUILD TRIGGERS ARRAY (with unique IDs)
   // ─────────────────────────────────────────────────────────────
+  const timestamp = Date.now();
   const triggers = uniqueTriggers.map((t, i) => ({
-    id: `t${i + 1}`,
+    id: `trigger-${timestamp}-${i + 1}`,
     type: "PriceTrigger" as const,
     asset,
     operator: t.operator,
     value: t.value,
   }));
 
+  // Timer trigger: "every 10 sec/seconds/min/minutes" or recurring patterns
+  const timerMatch = lowerPrompt.match(/every\s+(\d+)\s*(sec|second|seconds|min|minute|minutes)/i);
+  const recurringMatch = lowerPrompt.match(/(each|every)\s+(\d+)\s*(sec|second|seconds|min|minute|minutes)/i);
+  
+  let isRecurringWorkflow = false;
+  let intervalSeconds = 0;
+  
+  if (timerMatch || recurringMatch) {
+    const match = timerMatch || recurringMatch;
+    const n = parseInt(match[2]);
+    const unit = match[3];
+    intervalSeconds = /min/i.test(unit) ? n * 60 : n;
+    isRecurringWorkflow = true;
+    
+    triggers.push({ 
+      id: `trigger-${timestamp}-timer`, 
+      type: "TimerTrigger", 
+      intervalSec: intervalSeconds 
+    } as any);
+  }
+  
+  // Check for "again and again" or similar repeating patterns
+  if (/again\s+and\s+again|repeatedly|repeat|loop|continuous/i.test(lowerPrompt) && !isRecurringWorkflow) {
+    // Default to 15 seconds if no specific interval mentioned
+    intervalSeconds = 15;
+    isRecurringWorkflow = true;
+    
+    triggers.push({
+      id: `trigger-${timestamp}-timer`,
+      type: "TimerTrigger", 
+      intervalSec: intervalSeconds
+    } as any);
+  }
+
   // ─────────────────────────────────────────────────────────────
-  // 6. BUILD ACTIONS ARRAY
+  // 6. BUILD ACTIONS ARRAY (with unique IDs)
   // ─────────────────────────────────────────────────────────────
   const actions: any[] = uniqueActions.map((a, i) => {
     const action: any = {
-      id: `a${i + 1}`,
+      id: `action-${timestamp}-${i + 1}`,
       type: "TradeAction",
       side: a.side,
-      asset,
-      amount: a.amount,
+      asset: quoteSizing?.targetAsset || asset,
+      amount: a.amount || 1,
     };
     if (a.leverage) action.leverage = a.leverage;
+    if (quoteSizing) {
+      action.quoteAmount = quoteSizing.quoteAmount;
+      action.quoteAsset = quoteSizing.quoteAsset;
+    }
     return action;
   });
 
@@ -221,51 +278,106 @@ export function parseWorkflowLocally(prompt: string): Workflow {
   }
 
   // ─────────────────────────────────────────────────────────────
-  // 7. NOTIFICATION ACTIONS (email/sms/discord)
+  // 7. NOTIFICATION ACTIONS (always add notification for 3-node workflow)
   // ─────────────────────────────────────────────────────────────
   const emailMatch = lowerPrompt.match(/(?:email|mail).*?([a-z0-9._%+-]+@[a-z0-9.-]+\.[a-z]{2,})/i);
   const smsMatch = lowerPrompt.match(/(?:sms|text|phone).*?(\+?\d[\d\s-]{8,})/i);
   const discordMatch = /discord/i.test(lowerPrompt);
 
-  if (emailMatch || smsMatch || discordMatch) {
+  // Add loop control for recurring workflows
+  if (isRecurringWorkflow) {
+    // Add a loop counter action that stops after 10 iterations
     actions.push({
-      id: `a${actions.length + 1}`,
-      type: "NotificationAction",
-      channel: emailMatch ? "email" : smsMatch ? "sms" : "discord",
-      to: emailMatch?.[1] || smsMatch?.[1] || "user",
-      message: "Trade executed",
+      id: `action-${timestamp}-loop-control`,
+      type: "LoopControlAction",
+      maxIterations: 10,
+      currentIteration: 0,
+      intervalSec: intervalSeconds,
+      message: `Loop ${intervalSeconds}s intervals, max 10 times`,
     });
   }
 
+  // Always add a notification action to make 3+ nodes
+  let notificationChannel: "email" | "sms" | "discord" = "email";
+  let notificationTo = "trader@example.com";
+  
+  if (emailMatch) {
+    notificationChannel = "email";
+    notificationTo = emailMatch[1];
+  } else if (smsMatch) {
+    notificationChannel = "sms";
+    notificationTo = smsMatch[1];
+  } else if (discordMatch) {
+    notificationChannel = "discord";
+    notificationTo = "trader";
+  }
+
+  // Add notification action
+  const notificationMessage = isRecurringWorkflow 
+    ? `${asset} recurring trade (${intervalSeconds}s intervals): ${uniqueActions.map(a => `${a.side} ${a.amount}`).join(", ")}`
+    : `${asset} trade executed: ${uniqueActions.map(a => `${a.side} ${a.amount}`).join(", ")}`;
+
+  actions.push({
+    id: `action-${timestamp}-notif-${actions.length + 1}`,
+    type: "NotificationAction",
+    channel: notificationChannel,
+    to: notificationTo,
+    message: notificationMessage,
+  });
+
   // ─────────────────────────────────────────────────────────────
-  // 8. BUILD EDGES (smart mapping)
+  // 8. BUILD EDGES (create 3-node linear flow: trigger → trade → notification)
   // ─────────────────────────────────────────────────────────────
   const edges: { from: string; to: string }[] = [];
 
-  if (triggers.length > 0 && actions.length > 0) {
-    if (triggers.length === actions.length) {
-      // 1:1 mapping
-      for (let i = 0; i < triggers.length; i++) {
-        edges.push({ from: triggers[i].id, to: actions[i].id });
+  // Separate different types of actions
+  const tradeActions = actions.filter(a => a.type === "TradeAction");
+  const loopControlActions = actions.filter(a => a.type === "LoopControlAction");
+  const notificationActions = actions.filter(a => a.type === "NotificationAction");
+
+  if (triggers.length > 0) {
+    if (isRecurringWorkflow && loopControlActions.length > 0) {
+      // For recurring workflows: timer → loop control → trade → notification
+      const timerTrigger = triggers.find(t => (t as any).type === "TimerTrigger");
+      if (timerTrigger) {
+        edges.push({ from: timerTrigger.id, to: loopControlActions[0].id });
+        
+        if (tradeActions.length > 0) {
+          edges.push({ from: loopControlActions[0].id, to: tradeActions[0].id });
+          
+          // Chain multiple trade actions
+          for (let i = 0; i < tradeActions.length - 1; i++) {
+            edges.push({ from: tradeActions[i].id, to: tradeActions[i + 1].id });
+          }
+          
+          // Connect last trade to notification
+          if (notificationActions.length > 0) {
+            const lastTradeAction = tradeActions[tradeActions.length - 1];
+            edges.push({ from: lastTradeAction.id, to: notificationActions[0].id });
+            
+            // Loop back from notification to loop control for next iteration
+            edges.push({ from: notificationActions[0].id, to: loopControlActions[0].id });
+          }
+        }
       }
-    } else if (triggers.length > actions.length) {
-      // More triggers than actions: first N triggers map to actions, rest chain
-      for (let i = 0; i < actions.length; i++) {
-        edges.push({ from: triggers[i].id, to: actions[i].id });
-      }
-      // Remaining triggers chain to first action
-      for (let i = actions.length; i < triggers.length; i++) {
-        edges.push({ from: triggers[i].id, to: actions[0].id });
-      }
-    } else {
-      // More actions than triggers: first trigger -> first action, chain actions
-      edges.push({ from: triggers[0].id, to: actions[0].id });
-      for (let i = 0; i < actions.length - 1; i++) {
-        edges.push({ from: actions[i].id, to: actions[i + 1].id });
-      }
-      // Extra triggers map to first action
+    } else if (tradeActions.length > 0) {
+      // Regular workflow: trigger → trade → notification
+      edges.push({ from: triggers[0].id, to: tradeActions[0].id });
+      
+      // Connect additional triggers to first trade if multiple triggers
       for (let i = 1; i < triggers.length; i++) {
-        edges.push({ from: triggers[i].id, to: actions[0].id });
+        edges.push({ from: triggers[i].id, to: tradeActions[0].id });
+      }
+      
+      // Chain trade actions if multiple
+      for (let i = 0; i < tradeActions.length - 1; i++) {
+        edges.push({ from: tradeActions[i].id, to: tradeActions[i + 1].id });
+      }
+      
+      // Connect last trade action to notification action
+      if (notificationActions.length > 0) {
+        const lastTradeAction = tradeActions[tradeActions.length - 1];
+        edges.push({ from: lastTradeAction.id, to: notificationActions[0].id });
       }
     }
   }
@@ -275,26 +387,28 @@ export function parseWorkflowLocally(prompt: string): Workflow {
   // ─────────────────────────────────────────────────────────────
   // If no actions but triggers exist, infer a buy action
   if (actions.length === 0 && triggers.length > 0) {
+    const fallbackActionId = `action-${timestamp}-fallback`;
     actions.push({
-      id: "a1",
+      id: fallbackActionId,
       type: "TradeAction",
       side: "buy",
       asset,
       amount: 1,
     });
-    edges.push({ from: triggers[0].id, to: "a1" });
+    edges.push({ from: triggers[0].id, to: fallbackActionId });
   }
 
   // If no triggers but actions exist, create a manual trigger placeholder
   if (triggers.length === 0 && actions.length > 0) {
+    const fallbackTriggerId = `trigger-${timestamp}-fallback`;
     triggers.push({
-      id: "t1",
+      id: fallbackTriggerId,
       type: "PriceTrigger",
       asset,
       operator: ">=",
       value: 0, // placeholder
     });
-    edges.push({ from: "t1", to: actions[0].id });
+    edges.push({ from: fallbackTriggerId, to: actions[0].id });
   }
 
   // ─────────────────────────────────────────────────────────────
