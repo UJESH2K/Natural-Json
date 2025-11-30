@@ -1,50 +1,56 @@
 CARDANO × DAN LABS  
 
-<img src="public/5.png" width="120" />
+<img src="public/5.png" width="120" alt="Cardano × Dan Labs logo" />
 
-AI-powered trading agent that turns plain English like “buy 10 ADA every 5 seconds and send me a mail” into executable workflows, runs them on Cardano, and streams live trades and notifications in real time.[file:1]
+AI-powered trading agent that turns plain English like “buy 10 ADA every 5 seconds and send me a mail” into executable workflows, runs them on Cardano, and streams live trades and notifications in real time.
 
 ---
 
-The app opens with a full-screen “CARDANO × DAN LABS” hero, a glowing aurora background, and a single central prompt bar where the user can type or speak strategies such as “Buy 10 ADA every 5 seconds and send me a mail.”[file:1]
+## 🌌 Hero Experience
 
-### 🌌 Screenshots
+The app opens with a full-screen “CARDANO × DAN LABS” hero, a glowing aurora background, and a single central prompt bar where the user can type or speak strategies such as “Buy 10 ADA every 5 seconds and send me a mail”.
+
+Users see a chat-style history of all previously created agents and prompts on the left, so it feels like a trading copilot instead of a static form.
+
+### Screenshots
 
 Screenshot 1 – Initial hero screen with prompt:  
-![3](public/3.jpg)
+![Hero with prompt](public/3.jpg)
 
-Screenshot 2 – Focused hero / trading dashboard state:  
-![4](public/4.jpg)
+Screenshot 2 – Dashboard / workflow state:  
+![Workflow and dashboard](public/4.jpg)
 
-Additional UI state with live trading view and dashboard:  
-![7](public/7.jpg)
+Additional view with live trading and charts:  
+![Live trading view](public/7.jpg)
 
-### 🎬 End-to-end Demo
+---
 
-<p align="center">
-  <video width="700" controls>
-    <source src="public/6.mp4" type="video/mp4" />
-    Your browser does not support the video tag.
-  </video>
-</p>
+## 🎬 End-to-End Demo (Video)
 
+GitHub does not reliably play inline `<video>` tags in all contexts, so the most robust approach is a clickable thumbnail that opens the MP4.
 
-On the left, users see a chat-style history of all previously created agents and prompts, making it feel like a trading copilot rather than a static form.[1]
+[![Watch demo video](public/4.jpg)](public/6.mp4)
 
-This project converts natural language strategies into strict JSON workflows (triggers, actions, edges).[1]  
-It visualizes workflows as interactive graphs with animated nodes using React Flow.[1]  
-Executes trades against configured providers (Cardano, Lighter, Masumi, etc.) and simulates when needed.[1]  
-Sends real-time HTML email notifications whenever a workflow runs.[1]  
-Streams trade events live into a dashboard using Socket.IO.[1]  
-At a high level, you talk to the system like an AI agent, it compiles your intent into a workflow, and then that workflow becomes a live trading strategy with full observability.[1]
+> Click the image above to open and play the demo video (public/6.mp4) in your browser.
 
-Natural-language → JSON workflow parsing with a local regex-based NLP engine.[1]  
-Zero external AI requirement, with optional Gemini/OpenAI fallback.[1]  
-Cardano integration via Blockfrost webhooks and a dedicated real-time server.[1]  
-Email alerts via Nodemailer, Gmail SMTP, and responsive HTML templates.[1]  
-Animated, dark-mode trading canvas powered by TailwindCSS and custom shaders.[1]  
-Live dashboard with charts, trade history, and action statuses.[1]  
-Persistent chat history stored in the browser, so each strategy is a “session” you can revisit.[1]
+---
+
+On the left, users see a chat-style history of all previously created agents and prompts, making it feel like a trading copilot rather than a static form.
+
+This project converts natural language strategies into strict JSON workflows (triggers, actions, edges).
+It visualizes workflows as interactive graphs with animated nodes using React Flow.
+Executes trades against configured providers (Cardano, Lighter, Masumi, etc.) and simulates when needed.  
+Sends real-time HTML email notifications whenever a workflow runs.
+Streams trade events live into a dashboard using Socket.IO.
+At a high level, you talk to the system like an AI agent, it compiles your intent into a workflow, and then that workflow becomes a live trading strategy with full observability.
+
+Natural-language → JSON workflow parsing with a local regex-based NLP engine.
+Zero external AI requirement, with optional Gemini/OpenAI fallback.
+Cardano integration via Blockfrost webhooks and a dedicated real-time server. 
+Email alerts via Nodemailer, Gmail SMTP, and responsive HTML templates.
+Animated, dark-mode trading canvas powered by TailwindCSS and custom shaders. 
+Live dashboard with charts, trade history, and action statuses.
+Persistent chat history stored in the browser, so each strategy is a “session” you can revisit.
 
 ujesh2k-natural-json/
 ├── README.md
