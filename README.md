@@ -1,6 +1,3 @@
-Here is your updated Markdown with the new screenshots and video wired into the flow section. You can paste this over your current README content.
-
-***
 
 CARDANO × DAN LABS  
 
