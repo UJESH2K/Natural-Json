@@ -1,4 +1,5 @@
-CARDANO × DAN LABS
+
+CARDANO × DAN LABS  
 
 AI-powered trading agent that turns plain English like “buy 10 ADA every 5 seconds and send me a mail” into executable workflows, runs them on Cardano, and streams live trades and notifications in real time.[1]
 
@@ -6,13 +7,16 @@ AI-powered trading agent that turns plain English like “buy 10 ADA every 5 sec
 
 The app opens with a full-screen “CARDANO × DAN LABS” hero, a glowing aurora background, and a single central prompt bar where the user can type or speak strategies such as “Buy 10 ADA every 5 seconds and send me a mail.”[1]
 
-On the left, users see a chat-style history of all previously created agents and prompts, making it feel like a trading copilot rather than a static form.[2]
+- Screenshot 1 – Initial hero screen with prompt: WhatsApp Image 2025-11-30 at 12.29.23_69d0b8f0.jpg.[1]
+- Screenshot 2 – Focused hero with collapsed sidebar: WhatsApp Image 2025-11-30 at 12.30.26_ce6f6aa0.jpg.[2]
+
+On the left, users see a chat-style history of all previously created agents and prompts, making it feel like a trading copilot rather than a static form.[1]
 
 ## 🧠 What This Project Does
 
 - Converts natural language strategies into strict JSON workflows (triggers, actions, edges).[1]
 - Visualizes workflows as interactive graphs with animated nodes using React Flow.[1]
-- Executes trades against configured providers (Cardano, Lighter, etc.) and simulates when needed.[1]
+- Executes trades against configured providers (Cardano, Lighter, Masumi, etc.) and simulates when needed.[1]
 - Sends real-time HTML email notifications whenever a workflow runs.[1]
 - Streams trade events live into a dashboard using Socket.IO.[1]
 
@@ -90,7 +94,6 @@ Open http://localhost:3000 in your browser.[1]
 2) Configure `.env.local` for email and blockchain:
 
 ```env
-
 # ========= Core Frontend / API =========
 NEXT_PUBLIC_API_URL=http://localhost:3000/api
 
@@ -130,18 +133,10 @@ BLOCKFROST_PROJECT_ID=
 BLOCKFROST_NETWORK=preprod
 CARDANO_NETWORK=testnet
 
-# Get a free API key from: https://blockfrost.io/
-# 1. Sign up at blockfrost.io
-# 2. Create a new project for "Cardano Preprod"
-# 3. Copy the project ID (starts with "preview")
-# 4. Replace it in BLOCKFROST_PROJECT_ID
-
 # ========= Backpack (optional) =========
 BACKPACK_API_KEY=
 BACKPACK_API_SECRET=
-
 ```
-
 
 To get the Gmail app password, enable 2FA, create an “App Password,” and paste the 16-character key into `SMTP_PASSWORD`.[1]
 
@@ -155,18 +150,18 @@ This starts the Socket.IO + Blockfrost listener that powers live trade streams a
 
 ## 🔌 API Surface
 
-| Method | Endpoint                 | Purpose                                        |
-|--------|--------------------------|------------------------------------------------|
-| POST   | `/api/nlp`              | Prompt → workflow JSON                         |
-| GET    | `/api/nlp`              | Retrieve last parsed workflow                  |
-| GET    | `/api/nlp?prompt=...`   | Parse prompt via query string                  |
-| POST   | `/api/execute`          | Execute a workflow                             |
-| GET    | `/api/events`           | Server-Sent Events (workflow status stream)    |
-| POST   | `/api/email`            | Trigger email notification                     |
-| POST   | `/api/cardano`          | Cardano-related actions                        |
-| POST   | `/webhook/blockfrost`   | Receive live tx events from Blockfrost server  |
-| POST   | `/api/submit-trade`     | Simulated trade endpoint in `webhook-server`   |
-| GET    | `/health`               | Health status of real-time server              |
+| Method | Endpoint               | Purpose                                         |
+|--------|------------------------|-------------------------------------------------|
+| POST   | `/api/nlp`            | Prompt → workflow JSON                          |
+| GET    | `/api/nlp`            | Retrieve last parsed workflow                   |
+| GET    | `/api/nlp?prompt=...` | Parse prompt via query string                   |
+| POST   | `/api/execute`        | Execute a workflow                              |
+| GET    | `/api/events`         | Server-Sent Events (workflow status stream)     |
+| POST   | `/api/email`          | Trigger email notification                      |
+| POST   | `/api/cardano`        | Cardano-related actions                         |
+| POST   | `/webhook/blockfrost` | Receive live tx events from Blockfrost server   |
+| POST   | `/api/submit-trade`   | Simulated trade endpoint in `webhook-server`    |
+| GET    | `/health`             | Health status of real-time server               |
 [1]
 
 The main parsing entrypoint is `/api/nlp`, which uses `lib/localParser.ts` to transform natural language into a strictly typed `Workflow`.[1]
@@ -212,7 +207,6 @@ interface NotificationAction {
 }
 ```
 
-
 `localParser.ts` infers operators, detects assets, and builds triggers/actions while keeping everything within these interfaces.[1]
 
 ## 💡 Example Prompts
@@ -227,10 +221,12 @@ These are parsed into workflows with price or time-based triggers, trade actions
 
 ## 🎛️ UI & Interaction Flow
 
-This is the section where you can later embed:
+This is the section where the full end‑to‑end flow is showcased.
 
-- a short video demo of the full flow (prompt → graph → live trades), and
-- an additional screenshot showing a candlestick chart with the user’s trades overlaid.
+- Screenshots: The hero state and chat list are shown in the two images above.  
+- Demo video: WhatsApp Video 2025-11-30 at 13.17.30_a204e475.mp4 – this video walks through prompt → workflow graph → live trades and notifications.
+
+(Embed the video here in your repo using your preferred Markdown or frontend video component.)
 
 For now, the flow is:
 
@@ -238,9 +234,9 @@ For now, the flow is:
 2) On submit, the app calls `/api/nlp`, then animates open the lower “DAN Trading Dashboard” with a React Flow canvas on the left and a live trading dashboard on the right.[1]
 3) The canvas renders the parsed workflow as nodes and edges, while the dashboard shows execution controls and real-time output.[1]
 
-When you have your video and candlestick screenshot ready, add them under this section using standard Markdown embeds or links.
+Later, you will add another image here showing a candlestick chart with user trades overlaid.
 
-## 📊 Live Trading & Candlesticks (placeholder for future screenshot)
+## 📊 Live Trading & Candlesticks
 
 The `TradingDashboard` component subscribes to WebSocket trade events and renders:[1]
 
@@ -248,28 +244,29 @@ The `TradingDashboard` component subscribes to WebSocket trade events and render
 - aggregated stats for the current workflow, and  
 - price and volume charts using Recharts.  
 
-Later, you can augment this section with a candlestick chart image highlighting user trades plotted directly on price action.
+You can enhance this section with a candlestick chart screenshot that highlights executed trades directly on price action.
 
 ## 📧 Email Integration
 
 `EMAIL_INTEGRATION_COMPLETE.md` documents the email flow: Nodemailer + Gmail SMTP, HTML templates, and test prompts like “buy 0.1 eth and send notification to your-email@gmail.com.”[1]
 
-- Email service: `src/lib/emailService.ts`[1]
-- API endpoint: `src/app/api/email/route.ts`[1]
+- Email service: `src/lib/emailService.ts`.[1]
+- API endpoint: `src/app/api/email/route.ts`.[1]
 - Execution hook: `src/lib/executor.ts` attaches notifications to workflow actions.[1]
 
 Whenever a notification action fires, the system sends a responsive HTML email that includes workflow details, timestamps, and status.[1]
 
 ## 🔗 Providers & Integrations
 
-| Provider / Service | Role                                   |
-|--------------------|----------------------------------------|
-| Cardano + Blockfrost| On-chain data and webhook events      |
-| Lighter            | Optional execution backend             |
-| Backpack           | Optional wallet integration            |
-| Socket.IO          | Live trade event streaming             |
-| Gemini / OpenAI    | Optional LLM fallback for parsing      |
-| Gmail + Nodemailer | Transaction / alert email delivery     |
+| Provider / Service   | Role                                  |
+|----------------------|---------------------------------------|
+| Cardano + Blockfrost | On-chain data and webhook events      |
+| Lighter              | Optional execution backend            |
+| Masumi               | On-chain settlement via adapter       |
+| Backpack             | Optional wallet integration           |
+| Socket.IO            | Live trade event streaming            |
+| Gemini / OpenAI      | Optional LLM fallback for parsing     |
+| Gmail + Nodemailer   | Transaction / alert email delivery    |
 [1]
 
 All on-chain sensitive keys live in `.env.local` and are never committed.[1]
@@ -279,11 +276,11 @@ All on-chain sensitive keys live in `.env.local` and are never committed.[1]
 - `node test-email.js` – sends a test email using your SMTP settings.[1]
 - `POST /api/submit-trade` on `webhook-server.js` – simulates trades and broadcasts them via Socket.IO.[1]
 
-These utilities help validate infra before running real strategies.
+These utilities help validate infra before running real strategies.[1]
 
 ## 📜 License
 
 MIT – built to explore natural language trading agents, Cardano workflows, and real-time visualization.[1]
 
-[1](https://github.com/UJESH2K/Natural-Json/)
-[2](https://ppl-ai-file-upload.s3.amazonaws.com/web/direct-files/attachments/images/30896121/3a09fdb2-c6f4-487a-a1ba-8a03f1fcbc13/WhatsApp-Image-2025-11-30-at-12.29.29_be501961.jpg?AWSAccessKeyId=ASIA2F3EMEYE2S5LDIVF&Signature=y%2F3nazqU4ayxfr7rb0ZUsOpDBVs%3D&x-amz-security-token=IQoJb3JpZ2luX2VjEBgaCXVzLWVhc3QtMSJIMEYCIQDVwvDphm%2BaNhoTYNPcMbZ3AJ%2FiY2lUPbB7H9ugPOGbUQIhAMdJHG0BRAEmSP%2BufGA6hiUw4Uj4XRxAFC2gviypavWvKvwECOH%2F%2F%2F%2F%2F%2F%2F%2F%2F%2FwEQARoMNjk5NzUzMzA5NzA1Igy2fDEq7GXYnx6lrtYq0AQgXs1FeT2wq%2BN9f0gx60u%2FvO6NC2osn7Fq0Z88SwuocDC4EWUT7knN4DBUMuz6E94%2B1sNCdLDs0jDQdbkIYuWcABofg3iHXrVNZiciWROL9NG5wITcMy4Xvd%2B6e6kkW5mPIB%2FNo3aRxa5w4VKC%2FeJmmdkFZ%2F4nUZZfMfqgT4pDLAHZenSyhW4E4mFA1%2BpE32X00aRDZwwEupLHUKg56zq8ALgVPRxtI3%2FWxqThnvttPZkUu8E%2Frun3gBGiLFOrDHBdWSDDlXm0zqBWyB1SsuKu2iboOO6vYSv7rPVLZHqLXvxjTsLDu5KLIXZrbWp56LKgEB8XcCE%2FFi6thesG9qp%2F7ZP0IDnxeA4f8ZJEwJXlCh%2Fqgb3h8l5m%2FYuqAWjM%2BevEvEmDMW7%2F5S7SpGlSswAjt19hx5j2VUgJOFHQnWWfYerpbVHnN8DjXFYEn9bLB1ORbgO1TXUYTzZBo%2BUrMxCep4D55aF5%2F%2Bn060USMI0s612AnFxeFsJRtYIpvME2LFIhMB87chJrjgaORPqIopHpYy7vCodrTttwEV0V9GsPZ9VPtlxFFM08ubX9G2J1XTuWiYwKMP7YnTcMo%2BiM6zEbjNExqZvzqjFM3DlgA3ks%2FWeSAKK2cYLnUmCYvOoK9hiV8dLIhD7YhyAgNrMBxu3cgmTrYoOjdoaxobBgRI6QX3FFYZH7K0%2BdxqRBcU42AwsiWO0dxWcAqP67e0qG9Mxq%2B%2BuD0fzq9W5RpIxTeiPjliWeXskjjOUxZYEtY9fmuXlXvISXy1TR4XIFJXH3dHrHMPDkr8kGOpcB2CGgY2LWQj887yufxmwCpsdmoSaTbLecrZhWDS0Yt%2Fc1YvER2%2BSP2EA7S4JYHLB6jb5sJu76kXenUGhGfGDtEq2gXAP6jcRkSBpdiJoUFGmPSQOSGYXXgq1z2PbsiaKqRwRnXRydcDMVfkBr5BpdM17%2F0YggtT5lNQKFkZkTkZep5pZu9S3i6B1NTWyWGgG4aHnL98FZdw%3D%3D&Expires=1764489910)
+[1](https://ppl-ai-file-upload.s3.amazonaws.com/web/direct-files/attachments/images/30896121/b07e02ba-2512-4cc1-9b22-e29c80f0806d/image.jpeg)
+[2](https://ppl-ai-file-upload.s3.amazonaws.com/web/direct-files/attachments/images/30896121/3a09fdb2-c6f4-487a-a1ba-8a03f1fcbc13/WhatsApp-Image-2025-11-30-at-12.29.29_be501961.jpg)
