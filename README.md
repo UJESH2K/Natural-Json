@@ -51,156 +51,165 @@ Email alerts via Nodemailer, Gmail SMTP, and responsive HTML templates.
 Animated, dark-mode trading canvas powered by TailwindCSS and custom shaders. 
 Live dashboard with charts, trade history, and action statuses.
 Persistent chat history stored in the browser, so each strategy is a “session” you can revisit.
+✨ Core Features
+Natural Language → JSON: Converts plain English prompts like "buy 10 ADA every 5 seconds" into structured workflows​
 
-ujesh2k-natural-json/
-├── README.md
-├── EMAIL_INTEGRATION_COMPLETE.md
-├── next.config.js
-├── webhook-server.js
-├── .env.local.example
-└── src/
-    ├── app/page.tsx
-    ├── app/layout.tsx
-    ├── api/nlp/route.ts
-    ├── api/execute/route.ts
-    ├── api/events/route.ts
-    ├── api/cardano/route.ts
-    ├── api/email/route.ts
-    ├── components/ai/prompt-input.tsx
-    ├── components/ui/aurora-shaders.tsx
-    ├── components/ui/sidebar.tsx
-    ├── components/trading/TradingDashboard.tsx
-    ├── components/trading/WorkflowExecutor.tsx
-    ├── components/workflow/CustomNode.tsx
-    ├── components/workflow/workflow-canvas.tsx
-    ├── lib/localParser.ts
-    ├── lib/workflow-parser.ts
-    ├── lib/executor.ts
-    ├── lib/events.ts
-    ├── lib/emailService.ts
-    ├── lib/cardanoService.ts
-    ├── lib/lighterClient.ts
-    ├── lib/layout.ts
-    └── types/workflow.ts
+100% Local Parsing: Regex-based NLP parser - zero external AI API dependency​
 
-Tech stack: Next.js 16, TypeScript, TailwindCSS, @xyflow/react, Recharts, Socket.IO, Blockfrost, Nodemailer.[1]
+Cardano Blockchain: Real-time transaction monitoring via Blockfrost webhooks​
 
-SETUP & INSTALLATION EVERYTHING HERE IN ONE BLOCK:
+Live Email Notifications: Nodemailer integration with professional HTML templates​
 
-git clone <your-repo-url>  
-cd ujesh2k-natural-json  
-npm install  
-npm run dev  
-Open http://localhost:3000 in your browser.
+React Flow Visualization: Interactive workflow canvas with animated nodes​
 
-.env.local CONTENT EXACTLY AS YOU GAVE (NO REMOVALS):
+Real-time Dashboard: Live charts, trade history, and WebSocket updates​
 
-NEXT_PUBLIC_API_URL=http://localhost:3000/api
-OPENAI_API_KEY=your_openai_key_here
-GOOGLE_API_KEY=
-GEMINI_API_KEY=
-NEXT_PUBLIC_GEMINI_API_KEY=your_gemini_api_key_here
-MASUMI_API_KEY=your_masumi_api_key_here
-MASUMI_API_URL=https://api.masumi.xyz
-MASUMI_ENV=testnet
-LIGHTER_BASE_URL=https://testnet.app.lighter.xyz
-LIGHTER_API_KEY_INDEX=0
-LIGHTER_API_KEY_PUBLIC=disabled_api_broken
-LIGHTER_API_KEY_PRIVATE=disabled_api_broken
-ETH_PRIVATE_KEY=disabled_api_broken
-LIGHTER_WALLET_ADDRESS=disabled_api_broken
-SMTP_EMAIL=
-SMTP_PASSWORD=PUT_YOUR_16_CHARACTER_GMAIL_APP_PASSWORD_HERE
+Multi-provider Support: Cardano, Backpack, Lighter, Masumi adapters​
+
+Persistent Chat History: LocalStorage-backed conversation management​
+
+📦 Quick Start
+bash
+git clone <your-repo>
+cd ujesh2k-natural-json
+npm install
+npm run dev
+Open http://localhost:3000​
+
+Configure Email (.env.local):
+
+text
+SMTP_EMAIL=your-email@gmail.com
+SMTP_PASSWORD=your-16-char-app-password
 SMTP_SERVICE=gmail
-BLOCKFROST_PROJECT_ID=
-BLOCKFROST_NETWORK=preprod
-CARDANO_NETWORK=testnet
-BACKPACK_API_KEY=
-BACKPACK_API_SECRET=
+🎯 API Endpoints
+Method	Endpoint	Description
+POST	/api/nlp	Parse prompt → JSON workflow ​
+GET	/api/nlp	Get last workflow ​
+POST	/api/execute	Execute workflow ​
+POST	/api/email	Send notification ​
+GET	/api/events	Live SSE stream ​
+Example:
 
-Run the real-time server:  
-node webhook-server.js
+bash
+curl -X POST http://localhost:3000/api/nlp \
+  -H "Content-Type: application/json" \
+  -d '{"prompt": "buy 10 ADA when price hits $0.50 and email me"}'
+🏗️ Project Architecture
+text
+ujesh2k-natural-json/
+├── README.md                    # Core docs
+├── EMAIL_INTEGRATION_COMPLETE.md # Email setup
+├── src/
+│   ├── app/
+│   │   ├── api/                 # All endpoints
+│   │   │   ├── nlp/route.ts     # Regex parser
+│   │   │   ├── cardano/route.ts # Blockchain
+│   │   │   └── email/route.ts   # Notifications
+│   │   └── page.tsx             # Main UI
+│   ├── components/
+│   │   ├── trading/             # Dashboards
+│   │   ├── workflow/            # React Flow
+│   │   └── ui/                  # Aurora shaders
+│   ├── lib/
+│   │   ├── localParser.ts       # Core NLP engine
+│   │   ├── cardanoService.ts    # Blockfrost
+│   │   └── emailService.ts      # Nodemailer
+│   └── types/workflow.ts        # TypeScript interfaces
+├── webhook-server.js            # Socket.IO + Blockfrost
+└── package.json                 # Dependencies
+Tech Stack: Next.js 16, TypeScript, TailwindCSS, @xyflow/react, Blockfrost, Nodemailer​
 
-API ENDPOINTS (FULL LIST):
+📊 Workflow Schema
+typescript
+interface Workflow {
+  id: string;
+  name: string;
+  triggers: PriceTrigger[] | TimerTrigger[];
+  actions: TradeAction[] | NotificationAction[];
+  edges: { from: string; to: string }[];
+}
 
-POST /api/nlp  
-GET /api/nlp  
-GET /api/nlp?prompt=...  
-POST /api/execute  
-GET /api/events  
-POST /api/email  
-POST /api/cardano  
-POST /webhook/blockfrost  
-POST /api/submit-trade  
-GET /health  
+interface PriceTrigger {
+  id: string;
+  type: "PriceTrigger";
+  asset: string;      // "ADA", "BTC", "AAPL"
+  operator: ">=" | "<=" | ">" | "<";
+  value: number;
+}
 
-The main parsing entrypoint is /api/nlp using lib/localParser.ts.[1]
+interface TradeAction {
+  id: string;
+  type: "TradeAction";
+  side: "buy" | "sell" | "long" | "short";
+  asset: string;
+  amount: number;
+  takeProfitPercent?: number;
+  stopLossPercent?: number;
+}
+🎨 UI Flow
+Prompt Input → Natural language strategy​
 
-Exact Workflow Model (copied 1:1):
+NLP Parser → Structured JSON workflow​
 
-interface Workflow { id: string; name: string; triggers: PriceTrigger[]; actions: (TradeAction | NotificationAction)[]; edges: { from: string; to: string }[] }
-interface PriceTrigger { id: string; type: "PriceTrigger"; asset: string; operator: ">=" | "<=" | ">" | "<"; value: number }
-interface TradeAction { id: string; type: "TradeAction"; side: "buy" | "sell" | "long" | "short"; asset: string; amount: number; leverage?: number; takeProfit?: number; takeProfitPercent?: number; stopLoss?: number; stopLossPercent?: number }
-interface NotificationAction { id: string; type: "NotificationAction"; channel: "email" | "sms" | "discord"; to: string; message?: string }
+React Flow Canvas → Visual node graph​
 
-Example Prompts EXACTLY AS YOU WROTE:
+Live Dashboard → Charts + trade execution​
 
-“Buy 10 ADA every 5 seconds and email me.”  
-“Buy 10 shares of AAPL at 150 and sell at 180, TP 5%.”  
-“Long BTC 10x if price above 50000.”  
-“Short NIFTY at 22000, target 21500.”  
-“Buy 0.5 ETH, TP 10%, SL 5% and notify trader@domain.com.”  
+Execution → Cardano trades + email alerts​
 
-UI & Interaction Flow text EXACTLY as you wrote:
+Aurora Shaders create immersive animated backgrounds. Custom nodes animate on hover.​
 
-Screenshots: The hero state and chat list are shown in the two images above.  
-Demo video: WhatsApp Video 2025-11-30 at 13.17.30_a204e475.mp4 – this video walks through prompt → workflow graph → live trades and notifications.
+🔗 Integrations
+Service	Status	Purpose
+Blockfrost	✅ Live	Cardano tx monitoring ​
+Nodemailer	✅ Live	Gmail SMTP emails ​
+Socket.IO	✅ Live	Real-time updates ​
+Lighter	🔄 Testnet	Trading execution ​
+Gemini AI	🔧 Optional	Fallback parser ​
+🚀 Test Workflows
+text
+✅ "buy 10 ADA every 5 seconds and email me"
+✅ "when ADA hits $0.50 buy 100 ADA"
+✅ "long BTC 10x if price > $50k"
+✅ "short NIFTY at 22000, TP 5%, SL 2%"
+✅ "buy 0.5 ETH and notify trader@domain.com"
+📈 Live Trading Demo
+WebSocket Server: ws://localhost:4000/socket.io​
 
-VIDEO EMBED (USING YOUR LOCAL FILE /6.mp4):
+Webhook: POST /webhook/blockfrost​
 
-<video width="700" controls>
-  <source src="/6.mp4" type="video/mp4" />
-</video>
+Health: GET /health​
 
-More UI screenshots:  
-![3](/3.jpg)  
-![4](/4.jpg)
+Charts: Recharts with price simulation + real tx data​
 
-Flow (exact words preserved):
+🔧 Environment Setup
+Copy .env.local.example → .env.local:
 
-1) User opens CARDANO × DAN LABS screen and enters a natural-language strategy.  
-2) App calls /api/nlp, then opens DAN Trading Dashboard.  
-3) Canvas shows workflow. Dashboard shows controls + real-time output.
+text
+# Required for email
+SMTP_EMAIL=your@gmail.com
+SMTP_PASSWORD=abcd efgh ijkl mnop  # Gmail App Password
 
-Live Trading & Candlesticks EXACT (no removal):
+# Optional blockchain
+BLOCKFROST_PROJECT_ID=your_key
+LIGHTER_BASE_URL=https://testnet.zklighter.elliot.ai
+Gmail Setup: Enable 2FA → App Passwords → Generate 16-char password​
 
-The TradingDashboard subscribes to WebSocket trade events.[1]  
-Live trades, stats, price & volume charts, etc.
+📱 Responsive Design
+Mobile: Collapsible sidebar, touch-optimized canvas​
 
-Candlestick screenshot:  
-![7](/7.jpg)
+Desktop: Split view (canvas + dashboard)​
 
-Email Integration EXACT YOU WROTE:
+Dark Theme: Custom TailwindCSS with aurora animations​
 
-EMAIL_INTEGRATION_COMPLETE.md documents the flow.  
-Email service: src/lib/emailService.ts.  
-API endpoint: src/app/api/email/route.ts.  
-executor.ts attaches notifications.  
-HTML emails with workflow detail + timestamps.[1]
+🛠️ Development Scripts
+bash
+npm run dev      # Next.js dev server
+npm run build    # Production build
+npm run start    # Production server
+npm run lint     # ESLint
+node test-email.js  # Test SMTP
+📜 License
+MIT - Built for production-grade trading workflow automation​
 
-Providers EXACT:
-
-Cardano + Blockfrost, Lighter, Masumi, Backpack, Socket.IO, Gemini/OpenAI, Gmail + Nodemailer.[1]
-
-Testing EXACT:
-
-node test-email.js  
-POST /api/submit-trade  
-
-License EXACT:
-
-MIT – built to explore natural language trading agents, Cardano workflows, and real-time visualization.[1]
-
-Original Reference Links:
-[1](https://ppl-ai-file-upload.s3.amazonaws.com/web/direct-files/attachments/images/30896121/b07e02ba-2512-4cc1-9b22-e29c80f0806d/image.jpeg)  
-[2](https://ppl-ai-file-upload.s3.amazonaws.com/web/direct-files/attachments/images/30896121/3a09fdb2-c6f4-487a-a1ba-8a03f1fcbc13/WhatsApp-Image-2025-11-30-at-12.29.29_be501961.jpg)
